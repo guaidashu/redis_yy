@@ -19,7 +19,7 @@ class RedisDB(object):
     借鉴了flask的组件化思想，进行组件化开发) 会有一个 init_db函数
     """
 
-    def __init__(self, helper, **kwargs):
+    def __init__(self, helper=None, **kwargs):
         self.tool = Tool()
         self.redis = None
         self.host = kwargs.setdefault("host", "127.0.0.1")
