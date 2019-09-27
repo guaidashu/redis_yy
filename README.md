@@ -6,11 +6,15 @@
 
     The easiest way to install.
     
-        pip install redis-yy
+    ```py
+    pip install redis-yy
+    ```
   
     Or you can clone source code from github.
   
-        git clone git@github.com:guaidashu/redis_yy.git
+    ```bash
+    git clone git@github.com:guaidashu/redis_yy.git
+    ```
 
 3. Start
 
