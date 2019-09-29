@@ -28,7 +28,7 @@ class RedisDB(object):
         :param kwargs:
         """
         self.tool = Tool()
-        self.redis = redis.Redis()
+        self.redis = None
         self.host = kwargs.setdefault("host", "127.0.0.1")
         self.port = kwargs.setdefault("port", 6379)
         self.max_conn = kwargs.setdefault("max_conn", 1)
