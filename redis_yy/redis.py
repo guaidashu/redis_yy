@@ -28,12 +28,13 @@ class RedisDB(object):
         :param kwargs:
         """
         self.tool = Tool()
-        self.redis = None
+        self.redis = redis.Redis()
         self.host = kwargs.setdefault("host", "127.0.0.1")
         self.port = kwargs.setdefault("port", 6379)
         self.max_conn = kwargs.setdefault("max_conn", 1)
         self.password = kwargs.setdefault("password", None)
         self.mode = kwargs.setdefault("mode", 1)
+        self.decode_responses = kwargs.setdefault("decode_responses", True)
         self.is_debug = is_debug
         if helper is not None:
             self.helper = helper
@@ -54,10 +55,12 @@ class RedisDB(object):
         :return:
         """
         if self.mode == 1:
-            pool = redis.ConnectionPool(host=self.host, port=self.port, db=self.max_conn, password=self.password)
+            pool = redis.ConnectionPool(host=self.host, port=self.port, db=self.max_conn, password=self.password,
+                                        decode_responses=self.decode_responses)
             self.redis = redis.Redis(connection_pool=pool)
         else:
-            self.redis = redis.Redis(host=self.host, port=self.port, db=1, password=self.password)
+            self.redis = redis.Redis(host=self.host, port=self.port, db=1, password=self.password,
+                                     decode_responses=self.decode_responses)
 
     def get_redis(self):
         """
@@ -88,6 +91,7 @@ class RedisDB(object):
         self.password = self.helper.config[config].setdefault("PASSWORD", None)
         self.mode = self.helper.config[config].setdefault("MODE", 1)
         self.is_debug = self.helper.config[config].setdefault("DEBUG", True)
+        self.decode_responses = self.helper.config[config].setdefault("DECODE_RESPONSES", True)
 
     def __call__(self, *args, **kwargs):
         """
@@ -155,21 +159,32 @@ class RedisDB(object):
         """
         return self.redis.set(name, value, ex, px, nx, xx)
 
-    def get(self, key=None, encode="utf-8"):
+    def get(self, key=None):
         """
         获取对应键的值
         Get value
-        :param encode:
         :param key:
         :return:
         """
         if key is None:
             self.tool.debug("Please give a key which you want to search.")
             return
-        try:
-            data = self.redis.get(key).decode(encode)
-        except Exception as e:
-            data = None
-            if self.is_debug:
-                self.tool.debug("Get key's value is error: ".format(error=e))
-        return data
+        return self.redis.get(key)
+
+    def scan(self, cursor=0, match=None, count=None):
+        """
+        Get key(default get 10 records).
+        :param cursor:
+        :param match:
+        :param count:
+        :return:
+        """
+        return self.redis.scan(cursor=cursor, match=match, count=count)
+
+    def keys(self, pattern='*'):
+        """
+        Get all keys
+        :param pattern:
+        :return:
+        """
+        return self.redis.keys(pattern=pattern)
