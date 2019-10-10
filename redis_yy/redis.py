@@ -31,9 +31,10 @@ class RedisDB(object):
         self.redis = None
         self.host = kwargs.setdefault("host", "127.0.0.1")
         self.port = kwargs.setdefault("port", 6379)
-        self.max_conn = kwargs.setdefault("max_conn", 1)
+        self.max_conn = kwargs.setdefault("max_conn", 5)
         self.password = kwargs.setdefault("password", None)
         self.mode = kwargs.setdefault("mode", 1)
+        self.db = kwargs.setdefault("db", 0)
         self.decode_responses = kwargs.setdefault("decode_responses", True)
         self.is_debug = is_debug
         if helper is not None:
@@ -55,11 +56,11 @@ class RedisDB(object):
         :return:
         """
         if self.mode == 1:
-            pool = redis.ConnectionPool(host=self.host, port=self.port, db=self.max_conn, password=self.password,
-                                        decode_responses=self.decode_responses)
+            pool = redis.ConnectionPool(host=self.host, port=self.port, max_connections=self.max_conn, db=self.db,
+                                        password=self.password, decode_responses=self.decode_responses)
             self.redis = redis.Redis(connection_pool=pool)
         else:
-            self.redis = redis.Redis(host=self.host, port=self.port, db=1, password=self.password,
+            self.redis = redis.Redis(host=self.host, port=self.port, db=self.db, password=self.password,
                                      decode_responses=self.decode_responses)
 
     def get_redis(self):
@@ -75,21 +76,24 @@ class RedisDB(object):
         Get config from config dict.
         The config example:
             REDIS_CONFIG = {
-                "USERNAME": "postgres",
-                "PASSWORD": "root",
                 "HOST": "127.0.0.1",
-                "PORT": "5432",
-                "DATABASE": "postgres",
-                "TABLE_PREFIX": ""
+                "PORT": 6379,
+                "PASSWORD": "root",
+                "MAX_CONN": 5,
+                "DECODE_RESPONSES": True,
+                "IS_DEBUG": True,
+                "MODE": 1,
+                "DB": 0
             }
         :param config:
         :return:
         """
         self.host = self.helper.config[config].setdefault("HOST", "127.0.0.1")
         self.port = self.helper.config[config].setdefault("PORT", 6379)
-        self.max_conn = self.helper.config[config].setdefault("MAX_CONN", 1)
+        self.max_conn = self.helper.config[config].setdefault("MAX_CONN", 5)
         self.password = self.helper.config[config].setdefault("PASSWORD", None)
         self.mode = self.helper.config[config].setdefault("MODE", 1)
+        self.db = self.helper.config[config].setdefault("DB", 0)
         self.is_debug = self.helper.config[config].setdefault("DEBUG", True)
         self.decode_responses = self.helper.config[config].setdefault("DECODE_RESPONSES", True)
 
