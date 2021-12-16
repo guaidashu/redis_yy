@@ -133,7 +133,7 @@ class RedisDB(object):
         leak.
         """
         self.helper = helper
-        default_config = 'REDIS_CONF'
+        default_config = 'REDIS_CONFIG'
         if init_config:
             if default_config not in helper.config:
                 warnings.warn('Please set redis connect info.')
