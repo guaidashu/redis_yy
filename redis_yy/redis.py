@@ -28,7 +28,7 @@ class RedisDB(object):
         :param kwargs:
         """
         self.tool = Tool()
-        self.redis = None
+        self.client: redis.Redis
         self.host = kwargs.setdefault("host", "127.0.0.1")
         self.port = kwargs.setdefault("port", 6379)
         self.max_conn = kwargs.setdefault("max_conn", 5)
@@ -58,17 +58,17 @@ class RedisDB(object):
         if self.mode == 1:
             pool = redis.ConnectionPool(host=self.host, port=self.port, max_connections=self.max_conn, db=self.db,
                                         password=self.password, decode_responses=self.decode_responses)
-            self.redis = redis.Redis(connection_pool=pool)
+            self.client = redis.Redis(connection_pool=pool)
         else:
-            self.redis = redis.Redis(host=self.host, port=self.port, db=self.db, password=self.password,
-                                     decode_responses=self.decode_responses)
+            self.client = redis.Redis(host=self.host, port=self.port, db=self.db, password=self.password,
+                                      decode_responses=self.decode_responses)
 
     def get_redis(self):
         """
         return redis pool object
         :return:
         """
-        return self.redis
+        return self.client
 
     def get_config(self, config):
         """
@@ -147,7 +147,7 @@ class RedisDB(object):
         Close the redis connection
         :return:
         """
-        self.redis.close()
+        self.client.close()
 
     def set(self, name, value, ex=None, px=None, nx=False, xx=False):
         """
@@ -161,7 +161,7 @@ class RedisDB(object):
         :param xx:
         :return:
         """
-        return self.redis.set(name, value, ex, px, nx, xx)
+        return self.client.set(name, value, ex, px, nx, xx)
 
     def get(self, key=None):
         """
@@ -173,7 +173,7 @@ class RedisDB(object):
         if key is None:
             self.tool.debug("Please give a key which you want to search.")
             return
-        return self.redis.get(key)
+        return self.client.get(key)
 
     def scan(self, cursor=0, match=None, count=None):
         """
@@ -183,7 +183,7 @@ class RedisDB(object):
         :param count:
         :return:
         """
-        return self.redis.scan(cursor=cursor, match=match, count=count)
+        return self.client.scan(cursor=cursor, match=match, count=count)
 
     def keys(self, pattern='*'):
         """
@@ -191,4 +191,8 @@ class RedisDB(object):
         :param pattern:
         :return:
         """
-        return self.redis.keys(pattern=pattern)
+        return self.client.keys(pattern=pattern)
+
+    @property
+    def redis(self) -> redis.Redis:
+        return self.client
