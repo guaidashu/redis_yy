@@ -139,6 +139,7 @@ class RedisDB(object):
                 warnings.warn('Please set redis connect info.')
                 return self
             self.get_config(default_config)
+        self.init_db(default_config)
         helper.redis = self
 
     def close(self):
